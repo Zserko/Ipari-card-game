@@ -1,1 +1,228 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Ipari Card Game</title>
 
+<style>
+
+body{
+background:#0a0a0a;
+color:white;
+font-family:Arial;
+text-align:center;
+margin:0;
+}
+
+header{
+background:#111;
+padding:15px;
+font-size:22px;
+}
+
+.container{
+padding:20px;
+}
+
+input{
+padding:10px;
+margin:5px;
+border-radius:8px;
+border:none;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:10px;
+background:#ffcb05;
+cursor:pointer;
+margin:5px;
+font-weight:bold;
+}
+
+.album{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-top:20px;
+}
+
+.card{
+background:#1a1a1a;
+border-radius:15px;
+padding:10px;
+}
+
+.card img{
+width:100%;
+border-radius:10px;
+}
+
+.hidden{
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>Ipari Card Game</header>
+
+<div class="container">
+
+<div id="login">
+
+<h2>Bejelentkezés</h2>
+
+<input id="email" placeholder="email">
+<br>
+<input id="password" type="password" placeholder="jelszó">
+
+<br>
+
+<button onclick="register()">Regisztráció</button>
+<button onclick="login()">Belépés</button>
+
+</div>
+
+<div id="game" class="hidden">
+
+<h2>Kártya készítés</h2>
+
+<input id="cardName" placeholder="Kártya neve">
+<input id="cardHP" placeholder="HP">
+<input id="cardImg" placeholder="Kép URL">
+
+<br>
+
+<button onclick="createCard()">Kártya mentése</button>
+
+<h2>Album</h2>
+
+<div id="album" class="album"></div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "IDE_A_SAJAT_APIKEY",
+authDomain: "IDE_A_SAJAT_AUTHDOMAIN",
+projectId: "IDE_A_SAJAT_PROJECTID",
+storageBucket: "IDE_A_SAJAT_STORAGE",
+messagingSenderId: "IDE_A_SAJAT_ID",
+appId: "IDE_A_SAJAT_APPID"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+window.register = async function(){
+
+const email=document.getElementById("email").value
+
+const password=document.getElementById("password").value
+
+await createUserWithEmailAndPassword(auth,email,password)
+
+alert("Sikeres regisztráció")
+
+}
+
+window.login = async function(){
+
+const email=document.getElementById("email").value
+
+const password=document.getElementById("password").value
+
+await signInWithEmailAndPassword(auth,email,password)
+
+document.getElementById("login").classList.add("hidden")
+
+document.getElementById("game").classList.remove("hidden")
+
+loadCards()
+
+}
+
+window.createCard = async function(){
+
+const name=document.getElementById("cardName").value
+
+const hp=document.getElementById("cardHP").value
+
+const img=document.getElementById("cardImg").value
+
+await addDoc(collection(db,"cards"),{
+
+name:name,
+hp:hp,
+img:img
+
+})
+
+alert("Kártya mentve")
+
+loadCards()
+
+}
+
+async function loadCards(){
+
+const snapshot=await getDocs(collection(db,"cards"))
+
+const album=document.getElementById("album")
+
+album.innerHTML=""
+
+snapshot.forEach(doc=>{
+
+const c=doc.data()
+
+album.innerHTML+=`
+
+<div class="card">
+
+<h3>${c.name}</h3>
+
+<img src="${c.img}">
+
+<p>HP ${c.hp}</p>
+
+</div>
+
+`
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
